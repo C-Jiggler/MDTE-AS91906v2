@@ -1,0 +1,40 @@
+import sys
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QGridLayout, QWidget
+
+class MyFirstWindow(QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Happy tree friends")
+
+        grid_layout = QGridLayout()
+        self.buttons = []
+
+        for row in range(3):
+            row_buttons = []
+            for col in range(3):
+                button = QPushButton(f"({row},{col})")
+                grid_layout.addWidget(button, row, col)
+                row_buttons.append(button)
+                button.clicked.connect(self.button_clicked)
+                
+            self.buttons.append(row_buttons)
+
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        central_widget.setLayout(grid_layout)
+
+    def button_clicked(self):
+        # self.sender() gets the specific button that was just clicked
+        clicked_button = self.sender()
+        
+        # Change the text of that button
+        clicked_button.setText("hit")
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = MyFirstWindow()
+    window.show()
+    sys.exit(app.exec())
