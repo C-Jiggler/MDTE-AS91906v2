@@ -17,7 +17,11 @@ class MyFirstWindow(QMainWindow):
                 button = QPushButton(f"({row},{col})")
                 grid_layout.addWidget(button, row, col)
                 row_buttons.append(button)
-                button.clicked.connect(self.button_clicked)
+                
+                # Bring back the lambda to pass the row and col coordinates
+                button.clicked.connect(
+                    lambda checked, r=row, c=col: self.button_clicked(r, c)
+                )
                 
             self.buttons.append(row_buttons)
 
@@ -25,11 +29,13 @@ class MyFirstWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         central_widget.setLayout(grid_layout)
 
-    def button_clicked(self):
-        # self.sender() gets the specific button that was just clicked
-        clicked_button = self.sender()
+    # Add row and col back as parameters
+    def button_clicked(self, row, col):
+        # 1. Print to the console/terminal behind the window
+        print(f"({row},{col}) was hit")
         
-        # Change the text of that button
+        # 2. Change the actual button text
+        clicked_button = self.sender()
         clicked_button.setText("hit")
 
 
