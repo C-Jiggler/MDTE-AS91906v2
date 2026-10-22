@@ -23,18 +23,19 @@ class MyFirstWindow(QMainWindow):
         self.mole_row = -1
         self.mole_col = -1
 
-        # Central widget and main layout
+        # Central widget and main layout (Green background added here)
         central_widget = QWidget()
+        central_widget.setStyleSheet("background-color: #289124;")
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
 
         # Score label
         self.score_label = QLabel("Score: 0")
         self.score_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.score_label.setStyleSheet("font-size: 24px; font-weight: bold;")
+        self.score_label.setStyleSheet("font-size: 24px; font-weight: bold; color: white;")
         main_layout.addWidget(self.score_label)
 
-        # Initialize the grid layout and the buttons list (kept as a list of lists)
+        # Initialize the grid layout and the buttons list
         grid_layout = QGridLayout()
         self.buttons = []
 
@@ -42,6 +43,8 @@ class MyFirstWindow(QMainWindow):
             row_buttons = []
             for col in range(3):
                 button = QPushButton("Hole")
+                # Set default buttons to black with white text
+                button.setStyleSheet("background-color: black; color: white;")
                 grid_layout.addWidget(button, row, col)
                 row_buttons.append(button)
 
@@ -57,26 +60,26 @@ class MyFirstWindow(QMainWindow):
         # Setup QTimer for the moving target (moves every 1 second)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.move_mole)
-        self.timer.start(1000)
+        self.timer.start(2000)
 
         # Spawn the first mole
         self.move_mole()
 
     def move_mole(self):
-        # Reset all buttons back to default "Hole" state and clear styles
+        # Reset all buttons back to default "Hole" state and black background
         for r in range(3):
             for c in range(3):
                 self.buttons[r][c].setText("Hole")
-                self.buttons[r][c].setStyleSheet("")
+                self.buttons[r][c].setStyleSheet("background-color: black; color: white;")
 
         # Pick a new random row and column for the mole
         self.mole_row = random.randint(0, 2)
         self.mole_col = random.randint(0, 2)
 
-        # Set the mole button appearance
+        # Set the mole button appearance (Brown)
         self.buttons[self.mole_row][self.mole_col].setText("MOLE!")
         self.buttons[self.mole_row][self.mole_col].setStyleSheet(
-            "background-color: brown; color: white; font-weight: bold;"
+            "background-color: #4f2600; color: white; font-weight: bold;"
         )
 
     def button_clicked(self, row, col):
@@ -91,7 +94,7 @@ class MyFirstWindow(QMainWindow):
             # Correct hit feedback
             self.buttons[row][col].setText("Ouch!")
             self.buttons[row][col].setStyleSheet(
-                "background-color: green; color: white;"
+                "background-color: darkgreen; color: white;"
             )
 
             # Reset the timer and immediately spawn a new mole
@@ -100,7 +103,7 @@ class MyFirstWindow(QMainWindow):
         else:
             print("Missed!")
             self.buttons[row][col].setText("Miss")
-            self.buttons[row][col].setStyleSheet("background-color: lightcoral;")
+            self.buttons[row][col].setStyleSheet("background-color: lightcoral; color: black;")
 
 
 if __name__ == "__main__":
@@ -108,4 +111,3 @@ if __name__ == "__main__":
     window = MyFirstWindow()
     window.show()
     sys.exit(app.exec())
-
