@@ -1,0 +1,111 @@
+import sys
+import random
+from PyQt6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QPushButton,
+    QGridLayout,
+    QWidget,
+    QLabel,
+    QVBoxLayout
+)
+from PyQt6.QtCore import Qt, QTimer
+
+class MyFirstWindow(QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Happy tree friends")
+
+        # Initialize game variables
+        self.score = 0
+        self.mole_row = -1
+        self.mole_col = -1
+
+        # Central widget and main layout
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        main_layout = QVBoxLayout(central_widget)
+
+        # Score label
+        self.score_label = QLabel("Score: 0")
+        self.score_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.score_label.setStyleSheet("font-size: 24px; font-weight: bold;")
+        main_layout.addWidget(self.score_label)
+
+        # Initialize the grid layout and the buttons list (kept as a list of lists)
+        grid_layout = QGridLayout()
+        self.buttons = []
+
+        for row in range(3):
+            row_buttons = []
+            for col in range(3):
+                button = QPushButton("Hole")
+                grid_layout.addWidget(button, row, col)
+                row_buttons.append(button)
+
+                button.clicked.connect(
+                    lambda checked, r=row, c=col: self.button_clicked(r, c)
+                )
+
+            self.buttons.append(row_buttons)
+
+        # Nest the grid layout inside the main vertical layout
+        main_layout.addLayout(grid_layout)
+
+        # Setup QTimer for the moving target (moves every 1 second)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.move_mole)
+        self.timer.start(1000)
+
+        # Spawn the first mole
+        self.move_mole()
+
+    def move_mole(self):
+        # Reset all buttons back to default "Hole" state and clear styles
+        for r in range(3):
+            for c in range(3):
+                self.buttons[r][c].setText("Hole")
+                self.buttons[r][c].setStyleSheet("")
+
+        # Pick a new random row and column for the mole
+        self.mole_row = random.randint(0, 2)
+        self.mole_col = random.randint(0, 2)
+
+        # Set the mole button appearance
+        self.buttons[self.mole_row][self.mole_col].setText("MOLE!")
+        self.buttons[self.mole_row][self.mole_col].setStyleSheet(
+            "background-color: brown; color: white; font-weight: bold;"
+        )
+
+    def button_clicked(self, row, col):
+        print(f"({row},{col}) was data hit")
+
+        # Check if the clicked button matches the mole's position
+        if row == self.mole_row and col == self.mole_col:
+            self.score += 1
+            self.score_label.setText(f"Score: {self.score}")
+            print(f"Hit! Score: {self.score}")
+
+            # Correct hit feedback
+            self.buttons[row][col].setText("Ouch!")
+            self.buttons[row][col].setStyleSheet(
+                "background-color: green; color: white;"
+            )
+
+            # Reset the timer and immediately spawn a new mole
+            self.timer.start(1000)
+            self.move_mole()
+        else:
+            print("Missed!")
+            self.buttons[row][col].setText("Miss")
+            self.buttons[row][col].setStyleSheet("background-color: lightcoral;")
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = MyFirstWindow()
+    window.show()
+    sys.exit(app.exec())
+
