@@ -16,35 +16,51 @@ class MyFirstWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Happy tree friends")
+        self.setWindowTitle("Whack-a-Mole!")
 
         # Initialize game variables
         self.score = 0
         self.mole_row = -1
         self.mole_col = -1
+# --- Speed Tracking and Levels System ---
+# Speed and streak tracker
+        self.consecutive_hits = 0
+        self.speed_level = 0
+# Speed in milliseconds (level 0 is the slowest and the levels become faster)
+        self.speed_levels = [2000, 1600, 1200, 900, 600, 400]
 
-        # Central widget and main layout (Green background added here)
+        # Central widget and main layout (Grassy green background)
         central_widget = QWidget()
-        central_widget.setStyleSheet("background-color: #289124;")
+        central_widget.setStyleSheet("background-color: #2e8b57;")
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
 
-        # Score label
-        self.score_label = QLabel("Score: 0")
+        # Scoreboard displaying the current amount of points and now levels
+        self.score_label = QLabel("Score: 0 | Level: 1")
         self.score_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.score_label.setStyleSheet("font-size: 24px; font-weight: bold; color: white;")
+        self.score_label.setStyleSheet(
+            "font-size: 22px; font-weight: bold; color: white;"
+        )
         main_layout.addWidget(self.score_label)
 
-        # Initialize the grid layout and the buttons list
+        # The grid layout and the buttons list
         grid_layout = QGridLayout()
         self.buttons = []
 
         for row in range(3):
             row_buttons = []
             for col in range(3):
-                button = QPushButton("Hole")
-                # Set default buttons to black with white text
-                button.setStyleSheet("background-color: black; color: white;")
+                # New button system style giving each hole button a different appearance
+                button = QPushButton("🕳️ Hole")
+                button.setFixedSize(110, 110)
+                button.setStyleSheet("""
+                    background-color: #3b2219;
+                    color: #a67c52;
+                    border: 5px solid #1a0f0a;
+                    border-radius: 55px;
+                    font-size: 14px;
+                    font-weight: bold;
+                """)
                 grid_layout.addWidget(button, row, col)
                 row_buttons.append(button)
 
@@ -57,53 +73,104 @@ class MyFirstWindow(QMainWindow):
         # Nest the grid layout inside the main vertical layout
         main_layout.addLayout(grid_layout)
 
-        # Setup QTimer for the moving target (moves every 1 second)
+        # Setup QTimer for the moving target/mole
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.move_mole)
-        self.timer.start(2000)
+
+        # Start timer with initial speed level
+        self.update_timer_speed()
 
         # Spawn the first mole
         self.move_mole()
 
+    def update_timer_speed(self):
+        # Get current interval based on speed level (cap at max level index)
+        interval = self.speed_levels[min(self.speed_level, len(self.speed_levels) - 1)]
+        self.timer.start(interval)
+
     def move_mole(self):
-        # Reset all buttons back to default "Hole" state and black background
+        # Reset all buttons back to default "Hole" state
         for r in range(3):
             for c in range(3):
-                self.buttons[r][c].setText("Hole")
-                self.buttons[r][c].setStyleSheet("background-color: black; color: white;")
+                self.buttons[r][c].setText("🕳️ Hole")
+                self.buttons[r][c].setStyleSheet("""
+                    background-color: #3b2219;
+                    color: #a67c52;
+                    border: 5px solid #1a0f0a;
+                    border-radius: 55px;
+                    font-size: 14px;
+                    font-weight: bold;
+                """)
 
         # Pick a new random row and column for the mole
         self.mole_row = random.randint(0, 2)
         self.mole_col = random.randint(0, 2)
 
-        # Set the mole button appearance (Brown)
-        self.buttons[self.mole_row][self.mole_col].setText("MOLE!")
-        self.buttons[self.mole_row][self.mole_col].setStyleSheet(
-            "background-color: #4f2600; color: white; font-weight: bold;"
-        )
+        # Set the mole button appearance (Pop-up brown mole style)
+        self.buttons[self.mole_row][self.mole_col].setText("🐹 MOLE!")
+        self.buttons[self.mole_row][self.mole_col].setStyleSheet("""
+            background-color: #d28c46;
+            color: white;
+            border: 5px solid #8b4513;
+            border-radius: 55px;
+            font-size: 14px;
+            font-weight: bold;
+        """)
 
     def button_clicked(self, row, col):
-        print(f"({row},{col}) was data hit")
+        print(f"({row},{col}) was hit")
 
-        # Check if the clicked button matches the mole's position
+        # Check if the clicked button matches the moving target/mole's position
         if row == self.mole_row and col == self.mole_col:
             self.score += 1
-            self.score_label.setText(f"Score: {self.score}")
-            print(f"Hit! Score: {self.score}")
+            self.consecutive_hits += 1
+            print(f"Hit! Score: {self.score}, Streak: {self.consecutive_hits}")
 
-            # Correct hit feedback
-            self.buttons[row][col].setText("Ouch!")
-            self.buttons[row][col].setStyleSheet(
-                "background-color: darkgreen; color: white;"
-            )
+            # Check if the player hits 4 in a row to level up!
+            if (
+                self.consecutive_hits >= 4 
+                and self.speed_level < len(self.speed_levels) - 1
+            ):
+                self.speed_level += 1
+                self.consecutive_hits = 0  # Reset streak for the next level
+                print(f"Speed increased! Now at Level {self.speed_level + 1}")
 
-            # Reset the timer and immediately spawn a new mole
-            self.timer.start(1000)
+            # Correct hit (A flashy green light)
+            self.buttons[row][col].setText("✨ Ouch!")
+            self.buttons[row][col].setStyleSheet("""
+                background-color: #2ecc71;
+                color: white;
+                border: 5px solid #27ae60;
+                border-radius: 55px;
+                font-size: 14px;
+                font-weight: bold;
+            """)
+
+            # Update timer with current speed and spawn a new mole
+            self.update_timer_speed()
             self.move_mole()
         else:
             print("Missed!")
-            self.buttons[row][col].setText("Miss")
-            self.buttons[row][col].setStyleSheet("background-color: lightcoral; color: black;")
+            # Reset the streak and decrease speed level by 1 (minimum level 0)
+            self.consecutive_hits = 0
+            if self.speed_level > 0:
+                self.speed_level -= 1
+                print(f"Missed! Speed decreased to Level {self.speed_level + 1}")
+
+            self.score_label.setText(
+                f"Score: {self.score} | Level: {self.speed_level + 1}"
+            )
+            self.update_timer_speed()
+            # When the moving target is missed this will run
+            self.buttons[row][col].setText("❌ Miss")
+            self.buttons[row][col].setStyleSheet("""
+                background-color: #e74c3c;
+                color: white;
+                border: 5px solid #c0392b;
+                border-radius: 55px;
+                font-size: 14px;
+                font-weight: bold;
+            """)
 
 
 if __name__ == "__main__":
@@ -111,4 +178,3 @@ if __name__ == "__main__":
     window = MyFirstWindow()
     window.show()
     sys.exit(app.exec())
-
